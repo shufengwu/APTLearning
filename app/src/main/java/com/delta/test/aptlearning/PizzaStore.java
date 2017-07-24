@@ -5,9 +5,9 @@ package com.delta.test.aptlearning;
  */
 
 public class PizzaStore {
-    MealFactory mealFactory = new MealFactory();
+    /*MealFactory mealFactory = new MealFactory();
 
     public Meal order(String mealName){
         return  mealFactory.create(mealName);
-    }
+    }*/
 }

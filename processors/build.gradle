@@ -4,6 +4,8 @@ dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile project(':annotations')
     compile 'com.google.auto.service:auto-service:1.0-rc2'
+    compile 'com.squareup:javapoet:1.9.0'
+    compile 'com.squareup:javawriter:2.1.1'
 }
 
 sourceCompatibility = "1.7"

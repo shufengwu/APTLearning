@@ -10,8 +10,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         System.out.println("welcome to pizza store");
-        PizzaStore pizzaStore = new PizzaStore();
+        /*PizzaStore pizzaStore = new PizzaStore();
         Meal meal = pizzaStore.order("Tiramisu");
-        System.out.println("Bill:$" + meal.getPrice());
+        System.out.println("Bill:$" + meal.getPrice());*/
     }
 }

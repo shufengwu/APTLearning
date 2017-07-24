@@ -30,4 +30,5 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile project(':annotations')
     apt project(':processors')
+    compile 'com.squareup:javapoet:1.9.0'
 }
