@@ -79,8 +79,8 @@ public class FactoryProcessor extends AbstractProcessor {
             TypeElement typeElement = (TypeElement) annotatedElement;
             Factory factory = typeElement.getAnnotation(Factory.class);
             try {
-                error(annotatedElement, factory.id() + " " + typeElement.getSimpleName().toString());
-                error(annotatedElement, "label1");
+                //error(annotatedElement, factory.id() + " " + typeElement.getSimpleName().toString());
+                //error(annotatedElement, "label1");
                 map.put(factory.id(), typeElement);
                 messager.printMessage(
                         Diagnostic.Kind.NOTE,
