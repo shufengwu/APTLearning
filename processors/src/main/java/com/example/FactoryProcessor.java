@@ -2,6 +2,7 @@ package com.example;
 
 import com.google.auto.service.AutoService;
 import com.google.common.reflect.Parameter;
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
@@ -29,6 +30,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
+import javax.tools.Diagnostic;
 
 /**
  * Created by Shufeng.Wu on 2017/7/19.
@@ -37,13 +39,10 @@ import javax.lang.model.util.Types;
 @AutoService(Processor.class)
 public class FactoryProcessor extends AbstractProcessor {
 
-    /*private Types typeUtils;
-    private Elements elementUtils;
-    private Filer filer;
-    private Messager messager;*/
-    private Map<String, Class<?>> map =
+    private Map<String, TypeElement> map =
             new LinkedHashMap<>();
     private ProcessingEnvironment processingEnv;
+    private Messager messager;
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
@@ -61,10 +60,7 @@ public class FactoryProcessor extends AbstractProcessor {
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
         this.processingEnv = processingEnv;
-        /*typeUtils = processingEnv.getTypeUtils();
-        elementUtils = processingEnv.getElementUtils();
-        filer = processingEnv.getFiler();
-        messager = processingEnv.getMessager();*/
+        messager = processingEnv.getMessager();
 
 
     }
@@ -75,47 +71,73 @@ public class FactoryProcessor extends AbstractProcessor {
         map.clear();
         for (Element annotatedElement : roundEnvironment
                 .getElementsAnnotatedWith(Factory.class)) {
-            /*if (annotatedElement.getKind() != ElementKind.CLASS) {
+            if (annotatedElement.getKind() != ElementKind.CLASS) {
                 return true; // Exit processing
-            }*/
+            }
 
             // We can cast it, because we know that it of ElementKind.CLASS
             TypeElement typeElement = (TypeElement) annotatedElement;
             Factory factory = typeElement.getAnnotation(Factory.class);
-            Map<String, Class<?>> map = new LinkedHashMap<>();
             try {
-                map.put(factory.id(), factory.type());
+                error(annotatedElement, factory.id() + " " + typeElement.getSimpleName().toString());
+                error(annotatedElement, "label1");
+                map.put(factory.id(), typeElement);
+                messager.printMessage(
+                        Diagnostic.Kind.NOTE,
+                        "label2");
             } catch (MirroredTypeException mte) {
+                error(annotatedElement, "error------------");
             }
+
         }
-        generateCode(map,processingEnv);
+
+        generateCode(map, processingEnv);
         return false;
     }
 
-    public void generateCode(Map<String, Class<?>> map,ProcessingEnvironment processingEnv){
-        ParameterSpec id = ParameterSpec.builder(String.class,"id").build();
+    public void generateCode(Map<String, TypeElement> map, ProcessingEnvironment processingEnv) {
         MethodSpec.Builder createBuilder = MethodSpec.methodBuilder("create")
-                .addParameter(id)
-                .addStatement("if (null == $L) {\n" +
-                        "throw new IllegalArgumentException(\"name of meal is null!\");\n" +
-                        "}\n",id);
-        for (String key:map.keySet()){
-            createBuilder.addStatement("if ($S.equals($L)) {\n" +
-                    "return new $T();\n" +
-                    "}\n",key,id,map.get(key));
+                .addParameter(String.class, "id")
+                .beginControlFlow("if (null == id) ")
+                .addStatement("throw new IllegalArgumentException(\"name of meal is null!\")")
+                .endControlFlow();
+
+        for (String key : map.keySet()) {
+            createBuilder
+                    .beginControlFlow("if ($S.equals(id)) ", key)
+                    .addStatement("return new $T()", ClassName.get(map.get(key)))
+                    .endControlFlow();
         }
-        createBuilder.addStatement("throw new IllegalArgumentException(\"Unknown meal '\" + $L + \"'\")",id)
-        .addModifiers(Modifier.PUBLIC);
+
+
+            createBuilder.addStatement("throw new IllegalArgumentException(\"Unknown meal '\" + id + \"'\")")
+                    .addModifiers(Modifier.PUBLIC)
+            .returns(ClassName.get("com.delta.test.aptlearning","Meal"));
+
+
         MethodSpec create = createBuilder.build();
-        TypeSpec mealFactory = TypeSpec.classBuilder("MealFactory").addModifiers(Modifier.PUBLIC)
-                .addMethod(create).build();
+
+        TypeSpec mealFactory = TypeSpec.classBuilder("MealFactory")
+                .addModifiers(Modifier.PUBLIC)
+                .addMethod(create)
+                .build();
+
         JavaFile javaFile = JavaFile.builder("com.delta.test.aptlearning", mealFactory)
                 .build();
+
         try {
             javaFile.writeTo(processingEnv.getFiler());
         } catch (IOException e) {
-            e.printStackTrace();}
+            e.printStackTrace();
+        }
 
+    }
+
+    private void error(Element e, String msg, Object... args) {
+        messager.printMessage(
+                Diagnostic.Kind.NOTE,
+                String.format(msg, args),
+                e);
     }
 
 }

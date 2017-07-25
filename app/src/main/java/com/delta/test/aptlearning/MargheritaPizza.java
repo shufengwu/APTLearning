@@ -6,7 +6,7 @@ import com.example.Factory;
  * Created by Shufeng.Wu on 2017/7/19.
  */
 
-@Factory(type=MargheritaPizza.class,id="Margherita")
+@Factory(id="Margherita")
 public class MargheritaPizza implements Meal{
     @Override
     public float getPrice() {
