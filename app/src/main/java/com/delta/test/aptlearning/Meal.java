@@ -5,5 +5,5 @@ package com.delta.test.aptlearning;
  */
 
 public interface Meal {
-    public float getPrice();
+  float getPrice();
 }
